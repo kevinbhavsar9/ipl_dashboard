@@ -1,14 +1,14 @@
-import { MatchContainer } from "../../components/live_upcoming_matches/MatchComponent";
+import { MatchContainer } from "../../components/Matches/MatchComponent";
 import { PointsComponent } from "../../components/Points/Points";
 import { ScheduleComponent } from "../../components/Schedule/ScheduleComponent";
 
 export default function Home() {
   return (
-    <div className="flex flex-col h-full w-full">
-      <MatchContainer className="border border-gray-300 rounded bg-white my-3"/>
-      <div className="grid grid-cols-2 h-2/3 my-1">
-        <PointsComponent className="border border-gray-300 rounded bg-white mr-1"/>
-        <ScheduleComponent className="border border-gray-300 rounded bg-white ml-1"/>
+    <div className="flex flex-col h-full w-full overflow-x-hidden gap-4">
+      <MatchContainer />
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+        <PointsComponent />
+        <ScheduleComponent />
       </div>
     </div>
   );
