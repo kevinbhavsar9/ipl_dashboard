@@ -1,8 +1,13 @@
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function MatchCard() {
+  const router = useRouter();
   return (
-    <div className="min-w-[320px] rounded-xl shadow-md border border-gray-200 mx-2">
+    <div
+      className="min-w-[320px] rounded-xl shadow-md border border-gray-200 mx-2 cursor-pointer"
+      onClick={() => router.push("/stats")}
+    >
       {/* Top Bar */}
       <div className="bg-blue-100 px-3 py-1 text-xs font-semibold flex justify-between">
         <span className="text-orange-600">STUMPS</span>
