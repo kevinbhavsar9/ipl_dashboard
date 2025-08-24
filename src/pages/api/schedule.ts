@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 import * as cheerio from "cheerio";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-type Team = {
+export type Team = {
   name: string;
   code: string;
   logo: string | null;
@@ -11,13 +11,13 @@ type Team = {
   overs: string;
 };
 
-type MatchLinks = {
+export type MatchLinks = {
   matchReport: string | null;
   highlights: string | null;
   matchCentre: string | null;
 };
 
-type Match = {
+export type Match = {
   matchID: string | undefined;
   matchOrder: string | null;
   venue: string;
@@ -26,6 +26,7 @@ type Match = {
   homeTeam: Team;
   awayTeam: Team;
   links: MatchLinks;
+  [key: string]: string | MatchLinks | Team | null | number | undefined;
 };
 
 export default async function handler(

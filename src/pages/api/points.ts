@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 import * as cheerio from "cheerio";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-interface PointsTableRow {
+export interface PointsTableRow {
   rank: string;
   team: string;
   played: string;
@@ -15,6 +15,7 @@ interface PointsTableRow {
   runsAgainst: string;
   points: string;
   recentForm: string;
+  [key: string]: string | number;
 }
 
 interface PointsTableResponse {

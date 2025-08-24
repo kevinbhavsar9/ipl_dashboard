@@ -1,11 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
+import { PointsTableRow } from "@/pages/api/points";
+import axios from "axios";
 
 type PointComponentProps = object;
 
 // Pos, Team, Played, win, loss, NRR, Points
 
 export const PointsComponent: React.FC<PointComponentProps> = () => {
+    const [pointTable, setPointTable] = useState<PointsTableRow[]>([])
+
+    useEffect(() => {
+
+        const fetchPointsTable = async () => {
+            try {
+                const response = await axios.get("/api/points");
+                console.log("points table", response.data)
+                setPointTable(response.data.table.map((item: PointsTableRow) => {
+                    return {
+                        pos: item.rank,
+                        team_name: item.team,
+                        total_played: item.played,
+                        win: item.won,
+                        loss: item.lost,
+                        nrr: item.nrr,
+                        pts: item.points
+                    }
+                }));
+            } catch (error) {
+                console.error("Error fetching points table:", error);
+            }
+        };
+
+        fetchPointsTable()
+    }, [])
+
+
     const table_headers = [
         { key: "pos", value: "POS" },
         { key: "team_name", value: "Name" },
@@ -16,51 +46,12 @@ export const PointsComponent: React.FC<PointComponentProps> = () => {
         { key: "pts", value: "PTS" },
     ];
 
-    const rows = [
-        {
-            pos: 1,
-            team_name: "Chennai Super Kings",
-            total_played: 14,
-            win: 10,
-            loss: 4,
-            nrr: "+0.809",
-            pts: 20,
-        },
-        {
-            pos: 2,
-            team_name: "Mumbai Indians",
-            total_played: 14,
-            win: 9,
-            loss: 5,
-            nrr: "+0.421",
-            pts: 18,
-        },
-        {
-            pos: 3,
-            team_name: "Royal Challengers Bangalore",
-            total_played: 14,
-            win: 8,
-            loss: 6,
-            nrr: "+0.134",
-            pts: 16,
-        },
-        {
-            pos: 4,
-            team_name: "Kolkata Knight Riders",
-            total_played: 14,
-            win: 7,
-            loss: 7,
-            nrr: "-0.214",
-            pts: 14,
-        },
-        // Add more teams as needed
-    ];
 
     return (
         <div className="border border-gray-300 rounded bg-white mr-1 w-full">
             <h1 className="mx-4 my-2 font-bold">Point Table</h1>
             <div className="mx-2 max-w-[90vw]">
-                <TableComponent headers={table_headers} rows={rows} />
+                <TableComponent headers={table_headers} rows={pointTable} />
             </div>
         </div>
     );

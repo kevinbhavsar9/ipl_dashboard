@@ -3,41 +3,25 @@ import TableComponent from "../shared/TableComponent";
 
 const MatchScores = () => {
   const headers = [
-    { key: "player", value: "Player" },
-    { key: "status", value: "" },
+    { key: "player", value: "Batsman" },
     { key: "runs", value: "R" },
+    { key: "six", value: "6s" },
+    { key: "four", value: "4s" },
     { key: "balls", value: "B" },
   ];
 
   const data = [
     {
       player: "Virat",
-      status: "Bowled BY ABC",
       runs: 14,
-      balls: 10,
-    },
-    {
-      player: "Rohit",
-      status: "Caught by A Bowling B",
-      runs: 14,
-      balls: 10,
-    },
-    {
-      player: "Sachin",
-      status: "Caught by B Bowling C",
-      runs: 14,
-      balls: 10,
-    },
-    {
-      player: "AB",
-      status: "Not Out",
-      runs: 14,
+      six: 10,
+      four: 3,
       balls: 10,
     },
   ];
 
   const headers2 = [
-    { key: "player", value: "Player" },
+    { key: "player", value: "Bolwer" },
     { key: "over", value: "O" },
     { key: "maiden", value: "M" },
     { key: "dots", value: "Dots" },
