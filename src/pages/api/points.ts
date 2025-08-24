@@ -1,82 +1,88 @@
-// // app/api/scores/route.ts
-// import { NextResponse } from "next/server";
-// import axios from "axios";
-// import * as cheerio from "cheerio";
-// import { parse } from "node-html-parser";
+// pages/api/points-table.js
+import { chromium } from "playwright";
+import * as cheerio from "cheerio";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-// // export default async function GET() {
-// //   try {
-// //     const { data } = await axios.get("https://example.com/scores"); // target site
-// //     const $ = cheerio.load(data);
+interface PointsTableRow {
+  rank: string;
+  team: string;
+  played: string;
+  won: string;
+  lost: string;
+  noResult: string;
+  nrr: string;
+  runsFor: string;
+  runsAgainst: string;
+  points: string;
+  recentForm: string;
+}
 
-// //     console.log($);
+interface PointsTableResponse {
+  success: boolean;
+  table?: PointsTableRow[];
+  error?: string;
+}
 
-// //     // Example: scrape team names and scores
-// //     const scores: any[] = [];
-// //     $(".score-card").each((_, el) => {
-// //       scores.push({
-// //         team: $(el).find(".team-name").text().trim(),
-// //         score: $(el).find(".score").text().trim(),
-// //       });
-// //     });
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<PointsTableResponse>
+): Promise<void> {
+  const url = "https://www.iplt20.com/points-table/men/2025";
 
-// //     return NextResponse.json({ scores });
-// //   } catch (error: any) {
-// //     return NextResponse.json({ error: error.message }, { status: 500 });
-// //   }
-// // }
+  const browser = await chromium.launch({ headless: false });
+  const context = await browser.newContext({
+    userAgent:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+      "AppleWebKit/537.36 (KHTML, like Gecko) " +
+      "Chrome/115.0.0.0 Safari/537.36",
+  });
 
-// // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-// import type { NextApiRequest, NextApiResponse } from "next";
+  const page = await context.newPage();
 
-// type Data = {
-//   name: string;
-// };
+  try {
+    const response = await page.goto(url, { waitUntil: "networkidle" });
+    console.log("Response status:", response?.status());
 
-// export default async function handler(
-//   req: NextApiRequest,
-//   res: NextApiResponse<Data>
-// ) {
-//   try {
-//     // Fetch the points table page
-//     const { data } = await axios.get("https://www.iplt20.com/points-table/men");
-//     const $ = cheerio.load(data);
+    await page.waitForSelector("#pointsdata", { timeout: 30000 });
 
-//     // Locate the table container — assuming it's the only or main points table
-//     const rows = $("table.ih-td-tab tbody#pointsdata tr");
+    const tableHtml = await page.$eval("#pointsdata", (el) => el.innerHTML);
 
-//     console.log(rows);
+    await browser.close();
 
-//     const table = rows
-//       .map((_, row) => {
-//         const cols = $(row).find("td");
+    const $ = cheerio.load(`<table>${tableHtml}</table>`);
 
-//         return {
-//           pos: cols.eq(0).text().trim(),
-//           // Team logo (via <img>) and name inside team cell
-//           team: {
-//             name: cols.eq(2).find("h2").text().trim(),
-//             logo: cols.eq(2).find("img").attr("src"),
-//           },
-//           matches: cols.eq(3).text().trim(),
-//           won: cols.eq(4).text().trim(),
-//           lost: cols.eq(5).text().trim(),
-//           nr: cols.eq(6).text().trim(),
-//           nrr: cols.eq(7).text().trim(),
-//           for: cols.eq(8).text().trim(),
-//           against: cols.eq(9).text().trim(),
-//           points: cols.eq(10).text().trim(),
-//           recentForm: cols
-//             .eq(11)
-//             .find("span.rf")
-//             .map((_, s) => $(s).text().trim())
-//             .get(),
-//         };
-//       })
-//       .get();
+    const results: PointsTableRow[] = [];
 
-//     return res.status(200).json({ table: table });
-//   } catch (error: any) {
-//     return res.status(404).json({ error: error.message });
-//   }
-// }
+    $("tr").each((_, row) => {
+      const cells = $(row).find("td");
+      if (cells.length === 0) return;
+
+      const teamCode = $(cells[2]).text().trim();
+      const data: PointsTableRow = {
+        rank: $(cells[0]).text().trim(),
+        team: teamCode,
+        played: $(cells[3]).text().trim(),
+        won: $(cells[4]).text().trim(),
+        lost: $(cells[5]).text().trim(),
+        noResult: $(cells[6]).text().trim(),
+        nrr: $(cells[7]).text().trim(),
+        runsFor: $(cells[8]).text().trim(),
+        runsAgainst: $(cells[9]).text().trim(),
+        points: $(cells[10]).text().trim(),
+        recentForm: $(cells[11]).text().trim(),
+      };
+
+      results.push(data);
+    });
+
+    return res.status(200).json({ success: true, table: results });
+  } catch (error: unknown) {
+    await browser.close();
+    console.error("Error fetching table:", error);
+    const errorMsg =
+      typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message)
+        : String(error);
+    res.status(500).json({ success: false, error: errorMsg });
+  }
+}
