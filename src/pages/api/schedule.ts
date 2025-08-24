@@ -3,8 +3,6 @@ import { chromium } from "playwright";
 import * as cheerio from "cheerio";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-
-
 type Team = {
   name: string;
   code: string;
@@ -20,6 +18,7 @@ type MatchLinks = {
 };
 
 type Match = {
+  matchID: string | undefined;
   matchOrder: string | null;
   venue: string;
   dateTime: string;
@@ -55,7 +54,7 @@ export default async function handler(
 
     await browser.close();
 
-       // Load into Cheerio
+    // Load into Cheerio
     const $ = cheerio.load(`<ul>${UlHtml}</ul>`);
     const matches: Match[] = [];
 
@@ -66,19 +65,52 @@ export default async function handler(
       const result = $(el).find(".vn-ticketTitle").text().trim();
 
       const homeTeam = {
-        name: $(el).find(".vn-shedTeam").first().find("h3").first().text().trim(),
-        code: $(el).find(".vn-shedTeam").first().find(".vn-teamCode h3").text().trim(),
-        logo: $(el).find(".vn-shedTeam").first().find("img").attr("src") || null,
+        name: $(el)
+          .find(".vn-shedTeam")
+          .first()
+          .find("h3")
+          .first()
+          .text()
+          .trim(),
+        code: $(el)
+          .find(".vn-shedTeam")
+          .first()
+          .find(".vn-teamCode h3")
+          .text()
+          .trim(),
+        logo:
+          $(el).find(".vn-shedTeam").first().find("img").attr("src") || null,
         score: $(el).find(".vn-shedTeam").first().find("p").text().trim(),
-        overs: $(el).find(".vn-shedTeam").first().find(".ov-display").text().trim(),
+        overs: $(el)
+          .find(".vn-shedTeam")
+          .first()
+          .find(".ov-display")
+          .text()
+          .trim(),
       };
 
       const awayTeam = {
-        name: $(el).find(".vn-shedTeam").last().find("h3").first().text().trim(),
-        code: $(el).find(".vn-shedTeam").last().find(".vn-teamCode h3").text().trim(),
+        name: $(el)
+          .find(".vn-shedTeam")
+          .last()
+          .find("h3")
+          .first()
+          .text()
+          .trim(),
+        code: $(el)
+          .find(".vn-shedTeam")
+          .last()
+          .find(".vn-teamCode h3")
+          .text()
+          .trim(),
         logo: $(el).find(".vn-shedTeam").last().find("img").attr("src") || null,
         score: $(el).find(".vn-shedTeam").last().find("p").text().trim(),
-        overs: $(el).find(".vn-shedTeam").last().find(".ov-display").text().trim(),
+        overs: $(el)
+          .find(".vn-shedTeam")
+          .last()
+          .find(".ov-display")
+          .text()
+          .trim(),
       };
 
       const links = {
@@ -87,7 +119,11 @@ export default async function handler(
         matchCentre: $(el).find("a.vn-matchBtn").attr("href") || null,
       };
 
+      const tempArr = links.matchCentre?.split("/");
+      const matchID = tempArr && tempArr[tempArr?.length - 1];
+
       matches.push({
+        matchID,
         matchOrder,
         venue,
         dateTime,
@@ -99,9 +135,6 @@ export default async function handler(
     });
 
     return res.status(200).json({ success: true, matches });
-
-
-
   } catch (error: unknown) {
     await browser.close();
     console.error("Error fetching table:", error);
