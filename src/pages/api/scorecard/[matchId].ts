@@ -1,21 +1,11 @@
 // pages/api/scorecard/[matchId].ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { chromium } from "playwright";
+import { redis } from "../../../../utils/lib/redis";
 
+type Data = { source: string; data?: unknown; error?: string };
 
-
-type Data = { success: boolean; data?: unknown; error?: string };
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
-  const { matchId } = req.query as { matchId?: string };
-  if (!matchId)
-    return res
-      .status(400)
-      .json({ success: false, error: "matchId is required" });
-
+const scrapeScoreCard = async (matchId: string) => {
   const browser = await chromium.launch({ headless: false });
   const context = await browser.newContext({
     userAgent:
@@ -28,45 +18,6 @@ export default async function handler(
 
   const loggedData: unknown[] = [];
 
-  // page.on("console", async (msg) => {
-  //   try {
-  //     console.log(`Console ${msg.type()}: ${msg.text()}`); // Debug: see all console messages
-
-  //     const args = msg.args();
-  //     for (let i = 0; i < args.length; i++) {
-  //       try {
-  //         const val = await args[i].jsonValue();
-
-  //         // Log all console data for debugging
-  //         if (val && typeof val === "object") {
-  //           loggedData.push({
-  //             type: msg.type(),
-  //             index: i,
-  //             data: val,
-  //             timestamp: new Date().toISOString(),
-  //           });
-
-  //           // // Check if this matches your target data structure
-  //           // if (
-  //           //   val.innings ||
-  //           //   val.scorecard ||
-  //           //   val.batting ||
-  //           //   Array.isArray(val)
-  //           // ) {
-  //           //   targetData = val;
-  //           //   console.log("Target data found:", JSON.stringify(val, null, 2));
-  //           // }
-  //         }
-  //       } catch (argError) {
-  //         // Some arguments might not be serializable
-  //         console.log(`Non-serializable arg at index ${i}`);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.log("Console listener error:", error);
-  //   }
-  // });
-
   page.on("console", async (msg) => {
     for (const arg of msg.args()) {
       try {
@@ -77,7 +28,7 @@ export default async function handler(
         }
       } catch {
         // Non-serializable content, ignore
-        console.log("Error occured");
+        return "Error occured"
       }
     }
   });
@@ -87,6 +38,7 @@ export default async function handler(
       `https://www.iplt20.com/match/2025/${matchId}`,
       {
         waitUntil: "networkidle",
+        timeout: 60000, // 1 minute
       }
     );
     console.log("Response status:", response?.status());
@@ -95,12 +47,50 @@ export default async function handler(
 
     await browser.close();
 
-    if (loggedData) {
-      return res.status(200).json({ success: true, data: loggedData });
+    const scoreCardData = loggedData[2];
+
+    if (scoreCardData) {
+      const transformedScoreCardData =
+        Array.isArray(scoreCardData) &&
+        scoreCardData?.map((item: any) => {
+          const { BattingCard, BowlingCard, Extras } = item;
+
+          const transformed_batting = BattingCard.map((batting_map) => {
+            const { PlayerID, PlayerName, Runs, Sixes, Fours, Balls } =
+              batting_map;
+            return { PlayerID, PlayerName, Runs, Sixes, Fours, Balls };
+          });
+
+          const transformed_bowling = BowlingCard.map((bowling_map) => {
+            const { PlayerID, PlayerName, Runs, Wickets, Economy } =
+              bowling_map;
+            return { PlayerID, PlayerName, Runs, Wickets, Economy };
+          });
+
+          const transformed_extra = Extras.map((extra_map) => {
+            const { BattingTeamName, BowlingTeamName, Total } = extra_map;
+            return { BattingTeamName, BowlingTeamName, Total };
+          });
+
+          return {
+            BattingCard: transformed_batting,
+            BowlingCard: transformed_bowling,
+            Extras: transformed_extra,
+          };
+        });
+
+      // return res.status(200).json({
+      //   success: true,
+      //   data: [[], [], transformedScoreCardData],
+      // });
+
+      return transformedScoreCardData;
+      // return res.status(200).json({ success: true, data: loggedData });
     } else {
-      return res
-        .status(404)
-        .json({ success: false, error: "No console data found" });
+      throw "No console data found";
+      // return res
+      //   .status(404)
+      //   .json({ success: false, error: "No console data found" });
     }
   } catch (error: unknown) {
     await browser.close();
@@ -109,6 +99,35 @@ export default async function handler(
       typeof error === "object" && error !== null && "message" in error
         ? String((error as { message?: unknown }).message)
         : String(error);
-    res.status(500).json({ success: false, error: errorMsg });
+    return errorMsg;
+    // res.status(500).json({ success: false, error: errorMsg });
+  }
+};
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<Data>
+) {
+  const { matchId } = req.query as { matchId?: string };
+  if (!matchId)
+    return res
+      .status(400)
+      .json({ source: "fresh", error: "matchId is required" });
+
+  const cached = await redis.get(`${matchId}_scoreCard`);
+  if (cached) {
+    return res.status(200).json({ source: "cache", data: cached });
+  }
+
+  // 2. Otherwise scrape fresh
+  const scrapedData = await scrapeScoreCard(matchId); // <-- your scraping logic
+
+  if (typeof scrapedData === "object") {
+    // 3. Save in Redis with 1-day expiry (86400 seconds)
+    await redis.set(`${matchId}_scoreCard`, scrapedData);
+
+    return res.status(200).json({ source: "fresh", data: scrapedData });
+  } else {
+    return res.status(500).json({ source: "fresh", error: scrapedData });
   }
 }

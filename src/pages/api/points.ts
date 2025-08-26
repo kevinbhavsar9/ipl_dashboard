@@ -2,6 +2,7 @@
 import { chromium } from "playwright";
 import * as cheerio from "cheerio";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { redis } from "../../../utils/lib/redis";
 
 export interface PointsTableRow {
   rank: string;
@@ -19,15 +20,12 @@ export interface PointsTableRow {
 }
 
 interface PointsTableResponse {
-  success: boolean;
+  source: string;
   table?: PointsTableRow[];
   error?: string;
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<PointsTableResponse>
-): Promise<void> {
+const scrapePointsTable = async () => {
   const url = "https://www.iplt20.com/points-table/men/2025";
 
   const browser = await chromium.launch({ headless: false });
@@ -76,7 +74,7 @@ export default async function handler(
       results.push(data);
     });
 
-    return res.status(200).json({ success: true, table: results });
+    return results;
   } catch (error: unknown) {
     await browser.close();
     console.error("Error fetching table:", error);
@@ -84,6 +82,29 @@ export default async function handler(
       typeof error === "object" && error !== null && "message" in error
         ? String((error as { message?: unknown }).message)
         : String(error);
-    res.status(500).json({ success: false, error: errorMsg });
+
+    return errorMsg;
+  }
+};
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<PointsTableResponse>
+): Promise<void> {
+  const cached: PointsTableRow[] | null = await redis.get("pointsData");
+  if (cached) {
+    return res.status(200).json({ source: "cache", table: cached });
+  }
+
+  // 2. Otherwise scrape fresh
+  const scrapedData = await scrapePointsTable(); // <-- your scraping logic
+
+  if (typeof scrapedData === "object") {
+    // 3. Save in Redis with 1-day expiry (86400 seconds)
+    await redis.set("pointsData", scrapedData, { ex: 86400 });
+
+    return res.status(200).json({ source: "fresh", table: scrapedData });
+  } else {
+    return res.status(500).json({ source: "fresh", error: scrapedData });
   }
 }

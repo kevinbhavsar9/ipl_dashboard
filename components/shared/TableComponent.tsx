@@ -6,7 +6,8 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { MatchLinks, Team } from "@/pages/api/schedule";
+import { Match, MatchLinks, Team } from "@/pages/api/schedule";
+import Link from "next/link";
 
 
 type TableHeader = {
@@ -43,11 +44,16 @@ const TableComponent: React.FC<TableComponentPros> = ({ headers, rows }) => {
               key={row_id}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
-              {headers.map((header) => (
-                <TableCell key={header.key} component="th" scope="row">
-                  {row[header.key] as string}
-                </TableCell>
-              ))}
+              {headers.map((header) => {
+                return header.key === "match" ? <TableCell key={header.key} component="th" scope="row">
+                  <Link href={`/stats/${row["matchId"]}`}>
+                    {row[header.key] as string}
+                  </Link>
+                </TableCell> :
+                  <TableCell key={header.key} component="th" scope="row">
+                    {row[header.key] as string}
+                  </TableCell>
+              })}
             </TableRow>
           ))}
         </TableBody>

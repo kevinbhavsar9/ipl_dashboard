@@ -3,6 +3,9 @@ import type { AppProps } from "next/app";
 import React from "react";
 import Navbar from "../../components/shared/Navbar";
 import Footer from "../../components/shared/Footer";
+import { ToastContainer } from 'react-toastify';
+
+
 
 
 export function App({ Component, pageProps }: AppProps) {
@@ -11,8 +14,10 @@ export function App({ Component, pageProps }: AppProps) {
       <Navbar />
       <main className="flex bg-[#f0f0fb] p-4">
         <Component {...pageProps} />
+
       </main>
       {/* <Footer /> */}
+      <ToastContainer />
     </div>
   );
 }

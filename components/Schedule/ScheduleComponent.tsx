@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
 import axios from "axios";
 import { Match } from "@/pages/api/schedule";
+import { toast } from "react-toastify";
+
 
 
 type ScheduleComponentProps = object
@@ -41,9 +43,13 @@ export const ScheduleComponent: React.FC<ScheduleComponentProps> = () => {
         const fetchScheduleTable = async () => {
             try {
                 const response = await axios.get("/api/schedule");
+                if (response.status !== 200) {
+                    toast.error("Error fetching API")
+                }
                 console.log("shcedule table", response.data)
                 setScheduleTable(response.data.matches.map((item: Match) => {
                     return {
+                        matchId: item.matchID,
                         match: `${item.homeTeam.code} vs ${item.awayTeam.code}`,
                         date: item.dateTime,
                         venue: item.venue,

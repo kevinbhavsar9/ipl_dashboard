@@ -2,6 +2,7 @@
 import { chromium } from "playwright";
 import * as cheerio from "cheerio";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { redis } from "../../../utils/lib/redis";
 
 export type Team = {
   name: string;
@@ -29,10 +30,7 @@ export type Match = {
   [key: string]: string | MatchLinks | Team | null | number | undefined;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<void> {
+const scrapeScheduleTable = async () => {
   const url = "https://www.iplt20.com/matches/results";
 
   const browser = await chromium.launch({ headless: false });
@@ -135,7 +133,7 @@ export default async function handler(
       });
     });
 
-    return res.status(200).json({ success: true, matches });
+    return matches;
   } catch (error: unknown) {
     await browser.close();
     console.error("Error fetching table:", error);
@@ -143,6 +141,29 @@ export default async function handler(
       typeof error === "object" && error !== null && "message" in error
         ? String((error as { message?: unknown }).message)
         : String(error);
-    res.status(500).json({ success: false, error: errorMsg });
+
+    return errorMsg;
+  }
+};
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<void> {
+  const cached: Match[] | null = await redis.get("scheduleData");
+  if (cached) {
+    return res.status(200).json({ source: "cache", matches: cached });
+  }
+
+  // 2. Otherwise scrape fresh
+  const scrapedData = await scrapeScheduleTable(); // <-- your scraping logic
+
+  if (typeof scrapedData === "object") {
+    // 3. Save in Redis with 1-day expiry (86400 seconds)
+    await redis.set("scheduleData", scrapedData, { ex: 86400 });
+
+    return res.status(200).json({ source: "fresh", matches: scrapedData });
+  } else {
+    return res.status(500).json({ source: "fresh", error: scrapedData });
   }
 }

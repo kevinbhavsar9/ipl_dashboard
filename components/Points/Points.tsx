@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
 import { PointsTableRow } from "@/pages/api/points";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 type PointComponentProps = object;
 
@@ -15,6 +16,9 @@ export const PointsComponent: React.FC<PointComponentProps> = () => {
         const fetchPointsTable = async () => {
             try {
                 const response = await axios.get("/api/points");
+                if (response.status !== 200) {
+                    toast.error("Error fetching API")
+                }
                 console.log("points table", response.data)
                 setPointTable(response.data.table.map((item: PointsTableRow) => {
                     return {
