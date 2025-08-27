@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-interface BattingPlayer {
+export interface BattingPlayer {
   PlayerID: string;
   PlayerName: string;
   Runs: number
@@ -15,7 +15,7 @@ interface BattingPlayer {
   Balls: number
 }
 
-interface BowlingPlayer {
+export interface BowlingPlayer {
   PlayerID: string;
   PlayerName: string;
   Runs: number
@@ -78,11 +78,6 @@ const Page = () => {
 
     fetchScoreCardData()
   }, [matchId])
-
-
-  useEffect(() => {
-    console.log(scoreData, "Tranfoemed sales")
-  }, [scoreData])
 
 
   return (

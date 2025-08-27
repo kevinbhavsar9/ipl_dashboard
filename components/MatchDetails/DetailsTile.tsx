@@ -40,7 +40,7 @@ const DetailsTile = ({ data }: DeailsTileProps) => {
   const team2 = data.length > 0 ? data[1][0] : [];
 
   return (
-    <div className="flex flex-col mx-8">
+    <div className="flex flex-col">
       <div className="flex justify-between">
         <div className="flex flex-col">
           <span>{!Array.isArray(team1) ? team1?.BattingTeamName : ""}</span>

@@ -1,77 +1,52 @@
 import { useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
 import { ScoreData } from "@/pages/stats/[matchId]";
+import MatchGraph from "./MatchGraph";
+import MatchPie from "./MatchPie";
 
 interface MatchScoresProps {
   data: ScoreData[];
 }
 
+export interface BarChartData {
+  label: string;
+  value: number;
+}
+
+export interface PieChartData {
+  name: string;
+  value: number;
+}
+
+const DEFAULT_VALUE = {
+  BattingCard: [],
+  BowlingCard: [],
+  Extras: [],
+};
+
 const MatchScores = ({ data }: MatchScoresProps) => {
   const [teams, setTeams] = useState<string[]>([]);
-  const [activeTeam, setActiveTeams] = useState<string>(
-    teams.length > 0 ? teams[0] : ""
-  );
+  const [activeTeam, setActiveTeams] = useState<string>("");
+  const [activeTeamScoreCard, setActiveTeamScoreCard] =
+    useState<ScoreData>(DEFAULT_VALUE);
+  const [batsmenData, setBatsmenData] = useState<BarChartData[]>([]);
+  const [bowlersData, setBowlersData] = useState<PieChartData[]>([]);
+
+  console.log(activeTeamScoreCard, "Car", batsmenData);
 
   const headers = [
-    { key: "player", value: "Batsman" },
-    { key: "runs", value: "R" },
-    { key: "six", value: "6s" },
-    { key: "four", value: "4s" },
-    { key: "balls", value: "B" },
-  ];
-
-  const data1 = [
-    {
-      player: "Virat",
-      runs: 14,
-      six: 10,
-      four: 3,
-      balls: 10,
-    },
+    { key: "PlayerName", value: "Batsman" },
+    { key: "Runs", value: "R" },
+    { key: "Sixes", value: "6s" },
+    { key: "Fours", value: "4s" },
+    { key: "Balls", value: "B" },
   ];
 
   const headers2 = [
-    { key: "player", value: "Bolwer" },
-    { key: "over", value: "O" },
-    { key: "maiden", value: "M" },
-    { key: "dots", value: "Dots" },
-    { key: "wickets", value: "W" },
-    { key: "economy", value: "Eco" },
-  ];
-
-  const data2 = [
-    {
-      player: "Virat",
-      over: 12,
-      maiden: 14,
-      dots: 10,
-      economy: 4,
-      wickets: 5,
-    },
-    {
-      player: "Virat",
-      over: 12,
-      maiden: 14,
-      dots: 10,
-      economy: 4,
-      wickets: 5,
-    },
-    {
-      player: "Virat",
-      over: 12,
-      maiden: 14,
-      dots: 10,
-      economy: 4,
-      wickets: 5,
-    },
-    {
-      player: "Virat",
-      over: 12,
-      maiden: 14,
-      dots: 10,
-      economy: 4,
-      wickets: 5,
-    },
+    { key: "PlayerName", value: "Bolwer" },
+    { key: "Runs", value: "R" },
+    { key: "Wickets", value: "W" },
+    { key: "Economy", value: "Eco" },
   ];
 
   console.log("this is the data", data);
@@ -80,27 +55,74 @@ const MatchScores = ({ data }: MatchScoresProps) => {
     const team1 = data.length > 0 ? data[0].Extras[0].BattingTeamName : [];
     const team2 = data.length > 0 ? data[1].Extras[0].BattingTeamName : [];
     setTeams([team1 as string, team2 as string]);
+    setActiveTeams(team1 as string);
   }, [data]);
 
-  const [selectedTeam, setSelectedTeam] = useState("MI");
+  useEffect(() => {
+    const activeTeamScoreCardValue = data.filter(
+      (item) => item.Extras[0].BattingTeamName === activeTeam
+    )[0];
+    const topBatsmenData = activeTeamScoreCardValue?.BattingCard.sort(
+      (a, b) => b.Runs - a.Runs
+    ).slice(0, 5);
+    const transformedBatsmanData = topBatsmenData?.map((item) => ({
+      label: item.PlayerName,
+      value: item.Runs,
+    }));
+    const topBowlersData = activeTeamScoreCardValue?.BowlingCard.sort(
+      (a, b) => b.Wickets - a.Wickets
+    ).slice(0, 5);
+    const transformedBowlerData = topBowlersData?.map((item) => ({
+      name: item.PlayerName,
+      value: item.Wickets,
+    }));
+
+    setActiveTeamScoreCard(activeTeamScoreCardValue);
+    setBatsmenData(transformedBatsmanData);
+    setBowlersData(transformedBowlerData);
+  }, [activeTeam]);
+
+  const handleChangeSelectedTeam = (team: string) => {
+    setActiveTeams(team);
+  };
+
   return (
     // Selection Tab
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6 mb-8">
       <div className="flex justify-start gap-3">
-        {teams && teams?.map((item, index) => (
+        {teams.map((item, index) => (
           <div
-            className="border-blue-400 border rounded-full px-2 py-1 cursor-pointer"
-            onClick={() => setSelectedTeam("MI")}
+            className={`border-blue-400 border ${
+              item === activeTeam && "bg-blue-400"
+            } rounded-full px-3 py-1 cursor-pointer`}
             key={index}
+            onClick={() => handleChangeSelectedTeam(item)}
           >
             {item}
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 w-full">
-        <TableComponent headers={headers} rows={data1} />
-        <TableComponent headers={headers2} rows={data2} />
+      <div className="flex flex-col lg:flex-row gap-6">
+        <TableComponent
+          headers={headers}
+          rows={activeTeamScoreCard?.BattingCard || []}
+        />
+        <TableComponent
+          headers={headers2}
+          rows={activeTeamScoreCard?.BowlingCard || []}
+        />
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="w-full lg:w-1/2 flex flex-col gap-3 bg-white">
+          <div className="border-b border-gray-400 p-3">Top 5 Batsmen</div>
+          <MatchGraph data={batsmenData} tooltipContent="Runs Scored" />
+        </div>
+        <div className="w-full lg:w-1/2 flex flex-col gap-3 bg-white">
+          <div className="border-b border-gray-400 p-3">Top 5 Bowlers</div>
+          <MatchPie data={bowlersData} />
+        </div>
       </div>
     </div>
   );
