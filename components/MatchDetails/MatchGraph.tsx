@@ -1,80 +1,91 @@
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
+  Bar,
+  BarChart,
+  Cell,
 } from "recharts";
+import { BarChartData } from "./MatchScores";
+import { formatNumber } from "../../utils/utilFunctions";
+import { COLORS } from "./MatchPie";
 
-const MatchGraph = () => {
-  const data = [
-    {
-      name: "",
-      mi: 0,
-      csk: 0,
-      amt: 0,
-    },
-    {
-      name: "W1",
-      mi: 40,
-      csk: 60,
-      amt: 50,
-    },
-    {
-      name: "W2",
-      mi: 70,
-      csk: 80,
-      amt: 100,
-    },
-    {
-      name: "W3",
-      mi: 90,
-      csk: 100,
-      amt: 150,
-    },
-    {
-      name: "W4",
-      mi: 110,
-      csk: 170,
-      amt: 200,
-    },
-    {
-      name: "W5",
-      mi: 130,
-      csk: 200,
-      amt: 250,
-    },
-    {
-      name: "W6",
-      mi: 210,
-      csk: 290,
-      amt: 300,
-    },
-    {
-      name: "W7",
-      mi: 340,
-      csk: 300,
-      amt: 350,
-    },
-  ];
+interface TooltipProps {
+  active?: boolean;
+  payload?: any[];
+  tooltipContent: string;
+}
+
+const MatchGraph = ({
+  data,
+  tooltipContent,
+}: {
+  data: BarChartData[];
+  tooltipContent: string;
+}) => {
+  const CustomBarChartTooltip = ({
+    active = false,
+    payload = [],
+    tooltipContent,
+  }: TooltipProps) =>
+    active && payload && payload.length ? (
+      <div className="flex flex-col w-[250px] border border-[#F6F6F6] shadow-tooltip">
+        <div className="flex items-center p-3 bg-[#F6F6F6] text-[#4D4D4D] text-xs font-semibold">
+          {payload[0].payload.label}
+        </div>
+        <div className="flex flex-col p-3 gap-3 bg-white">
+          <div className="flex gap-2 justify-start items-center">
+            <div className="text-[#4D4D4D] text-xs">
+              {`${tooltipContent}: `}{" "}
+              <span className="font-semibold">
+                {formatNumber(payload[0].payload.value)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : null;
 
   return (
-    <div className="flex justify-center items-center mx-8">
-      <div className="w-full h-[40vh] bg-white">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart width={500} height={300} data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="mi" stroke="#2933c3ff" />
-            <Line type="monotone" dataKey="csk" stroke="#b1c329ff" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="h-[300px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            axisLine={{ stroke: "#ccc", fill: "none" }}
+            dataKey={"label"}
+            tickFormatter={(value) =>
+              value.includes(" ") ? value.split(" ")[0] : value
+            }
+          />
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={formatNumber}
+          />
+          <Tooltip
+            wrapperStyle={{ outline: "none" }}
+            content={<CustomBarChartTooltip tooltipContent={tooltipContent} />}
+            cursor={false}
+          />
+          <Bar
+            dataKey="value"
+            name="label"
+            fill="#39729F"
+            radius={[0, 0, 0, 0]}
+            barSize={40}
+          >
+            {data.map((_, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 };
