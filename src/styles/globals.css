@@ -40,3 +40,21 @@ body {
     border-radius: 20px;
   }
 }
+
+
+@theme {
+  --animate-pulse-red: pulseRed 1.5s infinite;
+
+@keyframes pulseRed {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(239, 68, 68, 0.8);
+  }
+  50% {
+    opacity: 0.6;
+    text-shadow: 0 0 15px rgba(239, 68, 68, 1);
+  }
+}
+
+}
+

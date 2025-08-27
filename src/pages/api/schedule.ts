@@ -7,27 +7,27 @@ import { redis } from "../../../utils/lib/redis";
 export type Team = {
   name: string;
   code: string;
-  logo: string | null;
-  score: string;
-  overs: string;
+  logo?: string ;
+  score?: string;
+  overs?: string;
 };
 
 export type MatchLinks = {
-  matchReport: string | null;
-  highlights: string | null;
-  matchCentre: string | null;
+  matchReport?: string;
+  highlights?: string ;
+  matchCentre?: string;
 };
 
 export type Match = {
-  matchID: string | undefined;
-  matchOrder: string | null;
+  matchID?: string ;
+  matchOrder?: string ;
   venue: string;
   dateTime: string;
   result: string;
   homeTeam: Team;
   awayTeam: Team;
   links: MatchLinks;
-  [key: string]: string | MatchLinks | Team | null | number | undefined;
+  status:"live" | "upcoming" | "past";
 };
 
 const scrapeScheduleTable = async () => {
@@ -58,7 +58,7 @@ const scrapeScheduleTable = async () => {
     const matches: Match[] = [];
 
     $("li").each((_, el) => {
-      const matchOrder = $(el).find(".vn-matchOrder").text().trim() || null;
+      const matchOrder = $(el).find(".vn-matchOrder").text().trim() ?? undefined;
       const venue = $(el).find(".vn-venueDet p").text().trim();
       const dateTime = $(el).find(".vn-matchDateTime").text().trim();
       const result = $(el).find(".vn-ticketTitle").text().trim();
@@ -78,7 +78,7 @@ const scrapeScheduleTable = async () => {
           .text()
           .trim(),
         logo:
-          $(el).find(".vn-shedTeam").first().find("img").attr("src") || null,
+          $(el).find(".vn-shedTeam").first().find("img").attr("src") ?? undefined,
         score: $(el).find(".vn-shedTeam").first().find("p").text().trim(),
         overs: $(el)
           .find(".vn-shedTeam")
@@ -102,7 +102,7 @@ const scrapeScheduleTable = async () => {
           .find(".vn-teamCode h3")
           .text()
           .trim(),
-        logo: $(el).find(".vn-shedTeam").last().find("img").attr("src") || null,
+        logo: $(el).find(".vn-shedTeam").last().find("img").attr("src") ?? undefined,
         score: $(el).find(".vn-shedTeam").last().find("p").text().trim(),
         overs: $(el)
           .find(".vn-shedTeam")
@@ -113,9 +113,9 @@ const scrapeScheduleTable = async () => {
       };
 
       const links = {
-        matchReport: $(el).find("a.matchReportIcon").attr("href") || null,
-        highlights: $(el).find("a.matchHLIcon").attr("href") || null,
-        matchCentre: $(el).find("a.vn-matchBtn").attr("href") || null,
+        matchReport: $(el).find("a.matchReportIcon").attr("href") ?? undefined,
+        highlights: $(el).find("a.matchHLIcon").attr("href") ?? undefined,
+        matchCentre: $(el).find("a.vn-matchBtn").attr("href") ?? undefined,
       };
 
       const tempArr = links.matchCentre?.split("/");
@@ -130,6 +130,7 @@ const scrapeScheduleTable = async () => {
         homeTeam,
         awayTeam,
         links,
+        status:"past"
       });
     });
 
@@ -150,7 +151,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<void> {
-  const cached: Match[] | null = await redis.get("scheduleData");
+  const cached: Match[] = await redis.get("scheduleData") as Match[];
   if (cached) {
     return res.status(200).json({ source: "cache", matches: cached });
   }
