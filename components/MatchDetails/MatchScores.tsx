@@ -3,13 +3,14 @@ import TableComponent from "../shared/TableComponent";
 import { ScoreData } from "@/pages/stats/[matchId]";
 
 interface MatchScoresProps {
-  data: ScoreData[]
+  data: ScoreData[];
 }
 
 const MatchScores = ({ data }: MatchScoresProps) => {
-
-  const [teams, setTeams] = useState<string[]>([])
-  const [activeTeam, setActiveTeams] = useState<string>(teams.length > 0 ? teams[0] : "")
+  const [teams, setTeams] = useState<string[]>([]);
+  const [activeTeam, setActiveTeams] = useState<string>(
+    teams.length > 0 ? teams[0] : ""
+  );
 
   const headers = [
     { key: "player", value: "Batsman" },
@@ -73,44 +74,35 @@ const MatchScores = ({ data }: MatchScoresProps) => {
     },
   ];
 
-
-  console.log("this is the data", data)
+  console.log("this is the data", data);
 
   useEffect(() => {
     const team1 = data.length > 0 ? data[0].Extras[0].BattingTeamName : [];
     const team2 = data.length > 0 ? data[1].Extras[0].BattingTeamName : [];
-    setTeams([team1 as string, team2 as string])
-  }, [data])
-
-
+    setTeams([team1 as string, team2 as string]);
+  }, [data]);
 
   const [selectedTeam, setSelectedTeam] = useState("MI");
   return (
-
     // Selection Tab
-    <div className="flex flex-col gap-4 mx-8">
+    <div className="flex flex-col gap-4">
       <div className="flex justify-start gap-3">
-
-        {
-          teams.map((item) =>
-          (
-            <div className="border-blue-400 border rounded-full px-2 py-1 cursor-pointer"
-              onClick={() => setSelectedTeam("MI")} key={item}>
-              {item}
-            </div>))
-
-        }
+        {teams && teams?.map((item, index) => (
+          <div
+            className="border-blue-400 border rounded-full px-2 py-1 cursor-pointer"
+            onClick={() => setSelectedTeam("MI")}
+            key={index}
+          >
+            {item}
+          </div>
+        ))}
       </div>
 
-
-      <div className="">
-        {/* {selectedTeam === "MI" && ( */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          <TableComponent headers={headers} rows={data1} />
-          <TableComponent headers={headers2} rows={data2} />
-        </div>
+      <div className="flex flex-col lg:flex-row gap-4 w-full">
+        <TableComponent headers={headers} rows={data1} />
+        <TableComponent headers={headers2} rows={data2} />
       </div>
-    </div >
+    </div>
   );
 };
 
