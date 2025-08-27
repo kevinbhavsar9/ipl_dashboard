@@ -1,22 +1,29 @@
 import { useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
-import { ScoreData } from "@/pages/stats/[matchId]";
+import { BattingPlayer, ScoreData } from "@/pages/stats/[matchId]";
 
 interface MatchScoresProps {
   data: ScoreData[]
 }
 
+const DEFAULT_VALUE = {
+  BattingCard: [],
+  BowlingCard: [],
+  Extras: []
+}
+
 const MatchScores = ({ data }: MatchScoresProps) => {
 
   const [teams, setTeams] = useState<string[]>([])
-  const [activeTeam, setActiveTeams] = useState<string>(teams.length > 0 ? teams[0] : "")
+  const [activeTeam, setActiveTeams] = useState<string>("")
+  const [activeTeamScoreCard, setActiveTeamScoreCard] = useState<ScoreData>(DEFAULT_VALUE)
 
   const headers = [
-    { key: "player", value: "Batsman" },
-    { key: "runs", value: "R" },
-    { key: "six", value: "6s" },
-    { key: "four", value: "4s" },
-    { key: "balls", value: "B" },
+    { key: "PlayerName", value: "Batsman" },
+    { key: "Runs", value: "R" },
+    { key: "Sixes", value: "6s" },
+    { key: "Fours", value: "4s" },
+    { key: "Balls", value: "B" },
   ];
 
   const data1 = [
@@ -30,12 +37,10 @@ const MatchScores = ({ data }: MatchScoresProps) => {
   ];
 
   const headers2 = [
-    { key: "player", value: "Bolwer" },
-    { key: "over", value: "O" },
-    { key: "maiden", value: "M" },
-    { key: "dots", value: "Dots" },
-    { key: "wickets", value: "W" },
-    { key: "economy", value: "Eco" },
+    { key: "PlayerName", value: "Bolwer" },
+    { key: "Runs", value: "R" },
+    { key: "Wickets", value: "W" },
+    { key: "Economy", value: "Eco" },
   ];
 
   const data2 = [
@@ -80,25 +85,35 @@ const MatchScores = ({ data }: MatchScoresProps) => {
     const team1 = data.length > 0 ? data[0].Extras[0].BattingTeamName : [];
     const team2 = data.length > 0 ? data[1].Extras[0].BattingTeamName : [];
     setTeams([team1 as string, team2 as string])
+    setActiveTeams(team1 as string)
+
   }, [data])
 
+  useEffect(() => {
+    const activeTeamScoreCardValue = data.filter((item) => item.Extras[0].BattingTeamName === activeTeam)[0]
+    setActiveTeamScoreCard(activeTeamScoreCardValue)
+  }, [activeTeam])
 
 
-  const [selectedTeam, setSelectedTeam] = useState("MI");
+  const handleChangeSelectedTeam = (team: string) => {
+    setActiveTeams(team);
+  }
+
   return (
 
     // Selection Tab
     <div className="flex flex-col gap-4 mx-8">
       <div className="flex justify-start gap-3">
-
         {
-          teams.map((item) =>
+          teams.map((item, index) =>
           (
-            <div className="border-blue-400 border rounded-full px-2 py-1 cursor-pointer"
-              onClick={() => setSelectedTeam("MI")} key={item}>
+            <div
+              className={`border-blue-400 border ${item === activeTeam && "bg-amber-400"} rounded-full px-2 py-1 cursor-pointer`}
+              key={index}
+              onClick={() => handleChangeSelectedTeam(item)}>
               {item}
-            </div>))
-
+            </div>
+          ))
         }
       </div>
 
@@ -106,8 +121,8 @@ const MatchScores = ({ data }: MatchScoresProps) => {
       <div className="">
         {/* {selectedTeam === "MI" && ( */}
         <div className="flex flex-col lg:flex-row gap-4">
-          <TableComponent headers={headers} rows={data1} />
-          <TableComponent headers={headers2} rows={data2} />
+          <TableComponent headers={headers} rows={activeTeamScoreCard?.BattingCard || []} />
+          <TableComponent headers={headers2} rows={activeTeamScoreCard?.BowlingCard || []} />
         </div>
       </div>
     </div >
