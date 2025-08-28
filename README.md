@@ -19,8 +19,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 This project focuses on building a **real-time IPL dashboard** that aggregates match data, scorecards, points tables, and schedules.  
 Since the IPL website renders data dynamically using APIs and heavy JavaScript, we implemented a **scraping and caching pipeline** to ensure fast, reliable, and user-friendly access to data.
 
-[Link to Application](https://ipl-dashboard-gukddaesx-kevins-projects-f9222985.vercel.app)
-
 ---
 
 ## 🚀 Functionality Implemented
