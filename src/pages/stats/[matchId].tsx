@@ -13,18 +13,18 @@ const StatsPage = () => {
   const [scoreData, setScoreData] = useState<ScoreData[]>([]);
   const router = useRouter();
   
-  const { matchID } = router.query;
+  const { matchId } = router.query;
 
   useEffect(() => {
     console.log("router", router.query)
-    console.log("matchID", matchID)
+    console.log("matchID", matchId)
 
-  }, [router.query, router, matchID])
+  }, [router.query, router, matchId])
 
 
 
   useEffect(() => {
-    if (!router.isReady || !matchID) return;
+    if (!router.isReady || !matchId) return;
 
     const fetchScoreCardData = async (id: string) => {
       try {
@@ -40,9 +40,9 @@ const StatsPage = () => {
       }
     };
 
-    const id = Array.isArray(matchID) ? matchID[0] : matchID;
+    const id = Array.isArray(matchId) ? matchId[0] : matchId;
     fetchScoreCardData(id);
-  }, [router.query, router.isReady, matchID]);
+  }, [router.query, router.isReady, matchId]);
 
 
   return (
