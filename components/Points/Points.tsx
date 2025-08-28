@@ -16,7 +16,7 @@ export const PointsComponent = () => {
         setLoading(true);
         const response = await axios.get("/api/points");
         if (response.status !== 200) {
-          toast.error("Error fetching API");
+          toast.error("Please try again!");
         }
         setPointTable(
           response.data.table.map((item: PointsTableRow) => {
@@ -33,7 +33,7 @@ export const PointsComponent = () => {
         );
       } catch (error) {
         console.log("Error fetching points table:", error);
-        toast.error("Error fetching points table")
+        toast.error("Please try again")
       } finally {
         setLoading(false);
       }

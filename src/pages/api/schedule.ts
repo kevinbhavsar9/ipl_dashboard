@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { redis } from "../../../utils/lib/redis";
 import { Match } from "../../../utils/types/MatchScheduleTypes";
 import { SCRAPE_URL } from "../../../utils/config";
+import { toast } from "react-toastify";
 
 
 //Schedule table is scrapped from the actual Schedule table in IPL site
@@ -116,7 +117,8 @@ const scrapeScheduleTable = async () => {
     return matches;
   } catch (error: unknown) {
     await browser.close();
-    console.error("Error fetching table:", error);
+    console.log("Error fetching table:", error);
+    toast.error("Please try again")
     const errorMsg =
       typeof error === "object" && error !== null && "message" in error
         ? String((error as { message?: unknown }).message)

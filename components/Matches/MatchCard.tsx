@@ -47,8 +47,8 @@ export default function MatchCard({ matchDetails }: MatchCardProps) {
           }
 
         } catch (err) {
-          console.log("Error fetching score:", err);
-          toast.error("Error fetching score:")
+          console.log("error fetching match card data", err);
+          toast.error("Please try again")
         }
       };
 

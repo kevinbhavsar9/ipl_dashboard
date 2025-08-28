@@ -17,7 +17,7 @@ export const ScheduleComponent = () => {
         setLoading(true);
         const response = await axios.get("/api/schedule");
         if (response.status !== 200) {
-          toast.error("Error fetching API");
+          toast.error("Please try again");
         }
         setScheduleTable(
           response.data.matches.map((item: Match) => {
@@ -31,7 +31,7 @@ export const ScheduleComponent = () => {
         );
       } catch (error) {
         console.log("Error fetching schedule table:", error);
-        toast.error("Error fetching schedule table")
+        toast.error("Please try again")
       } finally {
         setLoading(false);
       }
