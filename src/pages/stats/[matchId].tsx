@@ -14,7 +14,11 @@ const StatsPage = () => {
   const router = useRouter();
   const { matchID } = router.query;
 
-  console.log("matchID",matchID)
+  useEffect(() => {
+    console.log("router",router)
+    console.log("matchID", matchID)
+
+  }, [router, matchID])
 
   const fetchScoreCardData = useCallback(async (id: string) => {
     try {
