@@ -14,27 +14,26 @@ const StatsPage = () => {
   const router = useRouter();
   const { matchID } = router.query;
 
-  const fetchScoreCardData = useCallback(async () => {
+  const fetchScoreCardData = useCallback(async (id: string) => {
     try {
-      if (matchID) {
 
-        const response = await axios.get(`/api/scorecard/${matchID}`);
-        const match_data = response.data.data
-        setScoreData(match_data)
-      }
+      const response = await axios.get(`/api/scorecard/${id}`);
+      const match_data = response.data.data
+      setScoreData(match_data)
+
 
     } catch (error) {
       console.log(error)
       toast.error("Please try again!")
     }
-  }, [matchID]);
+  }, []);
 
   useEffect(() => {
+    if (!router.isReady || !matchID) return;
 
-
-
-    fetchScoreCardData()
-  }, [matchID, fetchScoreCardData])
+    const id = Array.isArray(matchID) ? matchID[0] : matchID;
+    fetchScoreCardData(id);
+  }, [router.isReady, matchID, fetchScoreCardData]);
 
 
   return (
