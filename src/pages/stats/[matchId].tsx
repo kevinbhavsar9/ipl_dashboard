@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import DetailsTile from "../../../components/MatchDetails/DetailsTile";
 import MatchScores from "../../../components/MatchDetails/MatchScores";
 import { useRouter } from "next/router";
@@ -12,10 +12,11 @@ const StatsPage = () => {
 
   const [scoreData, setScoreData] = useState<ScoreData[]>([]);
   const router = useRouter();
+  
   const { matchID } = router.query;
 
   useEffect(() => {
-    console.log("router", router)
+    console.log("router", router.query)
     console.log("matchID", matchID)
 
   }, [router.query, router, matchID])
