@@ -15,10 +15,10 @@ const StatsPage = () => {
   const { matchID } = router.query;
 
   useEffect(() => {
-    console.log("router",router)
+    console.log("router", router)
     console.log("matchID", matchID)
 
-  }, [router, matchID])
+  }, [router.query, router, matchID])
 
   const fetchScoreCardData = useCallback(async (id: string) => {
     try {
@@ -39,7 +39,7 @@ const StatsPage = () => {
 
     const id = Array.isArray(matchID) ? matchID[0] : matchID;
     fetchScoreCardData(id);
-  }, [router.isReady, matchID, fetchScoreCardData]);
+  }, [router.query, router.isReady, matchID, fetchScoreCardData]);
 
 
   return (
