@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { eval_winner } from "../../utils/lib/helper";
 import { Extras } from "../../utils/types/MatchStatsTypes";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -39,4 +40,4 @@ const DetailsTile = ({ data }: DeailsTileProps) => {
   );
 };
 
-export default DetailsTile;
+export default memo(DetailsTile);

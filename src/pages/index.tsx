@@ -1,6 +1,6 @@
 import { LiveUpComingMatchContainer } from "../../components/Matches/LiveUpComingMatchContainer";
-import { PointsComponent } from "../../components/Points/Points";
-import { ScheduleComponent } from "../../components/Schedule/ScheduleComponent";
+import PointsComponent from "../../components/Points/Points";
+import ScheduleComponent from "../../components/Schedule/ScheduleComponent";
 
 
 export default function Home() {

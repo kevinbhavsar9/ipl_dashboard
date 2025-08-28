@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
 import { BarChartData, PieChartData, ScoreData } from "../../utils/types/MatchStatsTypes";
 import MatchBar from "./MatchBar";
@@ -110,4 +110,4 @@ const MatchScores = ({ data }: MatchScoresProps) => {
   );
 };
 
-export default MatchScores;
+export default memo(MatchScores);

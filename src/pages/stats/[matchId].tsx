@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DetailsTile from "../../../components/MatchDetails/DetailsTile";
 import MatchScores from "../../../components/MatchDetails/MatchScores";
 import { useRouter } from "next/router";
@@ -8,31 +8,33 @@ import { ScoreData } from "../../../utils/types/MatchStatsTypes";
 
 
 
-const Page = () => {
+const StatsPage = () => {
 
   const [scoreData, setScoreData] = useState<ScoreData[]>([]);
   const router = useRouter();
   const { matchID } = router.query;
 
+  const fetchScoreCardData = useCallback(async () => {
+    try {
+      if (matchID) {
+
+        const response = await axios.get(`/api/scorecard/${matchID}`);
+        const match_data = response.data.data
+        setScoreData(match_data)
+      }
+
+    } catch (error) {
+      console.log(error)
+      toast.error("Please try again!")
+    }
+  }, [matchID]);
+
   useEffect(() => {
 
-    const fetchScoreCardData = async () => {
-      try {
-        if (matchID) {
 
-          const response = await axios.get(`/api/scorecard/${matchID}`);
-          const match_data = response.data.data
-          setScoreData(match_data)
-        }
-
-      } catch (error) {
-        console.log(error)
-        toast.error("Please try again!")
-      }
-    };
 
     fetchScoreCardData()
-  }, [matchID])
+  }, [matchID, fetchScoreCardData])
 
 
   return (
@@ -43,4 +45,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default StatsPage;

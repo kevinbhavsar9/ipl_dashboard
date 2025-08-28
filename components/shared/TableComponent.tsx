@@ -9,7 +9,7 @@ import Paper from "@mui/material/Paper";
 import Link from "next/link";
 import CircularProgress from "@mui/material/CircularProgress";
 import Pagination from "@mui/material/Pagination";
-import { useState } from "react";
+import { memo, useState } from "react";
 import PaginationItem from "@mui/material/PaginationItem";
 import { getPaginationLabel } from "../../utils/lib/helper";
 import { ROWS_PER_PAGE } from "../../utils/config";
@@ -136,4 +136,4 @@ const TableComponent: React.FC<TableComponentPros> = ({
   );
 };
 
-export default TableComponent;
+export default memo(TableComponent);
