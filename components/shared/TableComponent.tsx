@@ -11,7 +11,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Pagination from "@mui/material/Pagination";
 import { useState } from "react";
 import PaginationItem from "@mui/material/PaginationItem";
-import { getPaginationLabel } from "../../utils/utilFunctions";
+import { getPaginationLabel } from "../../utils/lib/helper";
+import { ROWS_PER_PAGE } from "../../utils/config";
 
 type TableHeader = {
   key: string;
@@ -25,7 +26,7 @@ interface TableComponentPros {
   loading?: boolean;
 }
 
-const ROWS_PER_PAGE = 5;
+
 
 const TableComponent: React.FC<TableComponentPros> = ({
   headers,
@@ -52,13 +53,13 @@ const TableComponent: React.FC<TableComponentPros> = ({
     <div className="flex flex-col w-full">
       <TableContainer
         component={Paper}
-        className="overflow-x-auto scroll scroll-m-4 scroll-bar"
+        className="overflow-x-auto scroll scroll-m-4 scroll-bar h-[40vh]"
       >
         <Table
           sx={{ minWidth: 200, width: "100%", overflowX: "auto" }}
           aria-label="simple table"
         >
-          <TableHead className="bg-blue-100">
+          <TableHead className="bg-blue-100 sticky top-0">
             <TableRow>
               {headers.map((item) => (
                 <TableCell key={item.key}>{item.value}</TableCell>
@@ -82,8 +83,9 @@ const TableComponent: React.FC<TableComponentPros> = ({
                         component="th"
                         scope="row"
                         sx={{ width: "20%" }}
+
                       >
-                        <Link href={`/stats/${row["matchId"]}`}>
+                        <Link href={`/stats/${row["matchID"]}`} className="hover:border-b-2 hover:border-blue-100">
                           {row[header.key] as string}
                         </Link>
                       </TableCell>
@@ -99,6 +101,8 @@ const TableComponent: React.FC<TableComponentPros> = ({
           </TableBody>
         </Table>
       </TableContainer>
+
+
       <div className="flex items-center justify-between border-t border-[#E9E9E9] py-3 px-4 bg-white">
         <div className="text-xs text-[#6F6F6F]">
           {getPaginationLabel(rows, page, ROWS_PER_PAGE)}
@@ -115,8 +119,7 @@ const TableComponent: React.FC<TableComponentPros> = ({
             "& .MuiPaginationItem-root": {
               color: "#4D4D4D",
               "&.Mui-selected": {
-                backgroundColor: "#3346B7",
-                color: "#FFFFFF",
+                backgroundColor: "#dbeafe",
                 border: "none",
               },
             },
@@ -124,20 +127,7 @@ const TableComponent: React.FC<TableComponentPros> = ({
           renderItem={(item) => (
             <PaginationItem
               {...item}
-              components={{
-                previous: () => (
-                  <span className="text-sm text-[#001E96]">Prev</span>
-                ),
-                next: () => (
-                  <span className="text-sm text-[#001E96]">Next</span>
-                ),
-                first: () => (
-                  <span className="text-sm text-[#001E96]">First</span>
-                ),
-                last: () => (
-                  <span className="text-sm text-[#001E96]">Last</span>
-                ),
-              }}
+              
             />
           )}
         />

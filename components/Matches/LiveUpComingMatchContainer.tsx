@@ -3,10 +3,7 @@ import MatchCard from "./MatchCard";
 import { matchesDummyData } from "../../utils/data/dummyUpcomingMatchData";
 
 
-
-
-
-export const MatchContainer = () => {
+export const LiveUpComingMatchContainer = () => {
   return (
     <div className="flex flex-col border border-gray-300 rounded bg-white my-3">
       <h1 className="mx-4 my-2 font-bold text-grey">Live/Upcoming Matches</h1>

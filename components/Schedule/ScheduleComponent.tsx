@@ -1,38 +1,12 @@
 import React, { useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
 import axios from "axios";
-import { Match } from "@/pages/api/schedule";
+import { Match } from "../../utils/types/MatchScheduleTypes";
 import { toast } from "react-toastify";
+import { scheduleTableHeaders } from "../../utils/constants/tableHeaders";
 
-type ScheduleComponentProps = object;
-
-//headers
-// Match, date, venue,
-
-export const ScheduleComponent: React.FC<ScheduleComponentProps> = () => {
-  const table_headers = [
-    { key: "match", value: "Match" },
-    { key: "date", value: "Date" },
-    { key: "venue", value: "Venue" },
-  ];
-
-  const table_rows = [
-    {
-      match: "CSK vs MI",
-      date: "2024-04-10",
-      venue: "Chennai",
-    },
-    {
-      match: "RCB vs KKR",
-      date: "2024-04-11",
-      venue: "Bangalore",
-    },
-    {
-      match: "SRH vs DC",
-      date: "2024-04-12",
-      venue: "Hyderabad",
-    },
-  ];
+//Component to Show IPL schedule
+export const ScheduleComponent = () => {
 
   const [scheduleTable, setScheduleTable] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,11 +19,10 @@ export const ScheduleComponent: React.FC<ScheduleComponentProps> = () => {
         if (response.status !== 200) {
           toast.error("Error fetching API");
         }
-        console.log("shcedule table", response.data);
         setScheduleTable(
           response.data.matches.map((item: Match) => {
             return {
-              matchId: item.matchID,
+              matchID: item.matchID,
               match: `${item.homeTeam.code} vs ${item.awayTeam.code}`,
               date: item.dateTime,
               venue: item.venue,
@@ -57,7 +30,8 @@ export const ScheduleComponent: React.FC<ScheduleComponentProps> = () => {
           })
         );
       } catch (error) {
-        console.error("Error fetching points table:", error);
+        console.log("Error fetching schedule table:", error);
+        toast.error("Error fetching schedule table")
       } finally {
         setLoading(false);
       }
@@ -71,7 +45,7 @@ export const ScheduleComponent: React.FC<ScheduleComponentProps> = () => {
       <h1 className="mx-4 my-2 font-bold">Schedule</h1>
       <div className="mx-2 max-w-[90vw]">
         <TableComponent
-          headers={table_headers}
+          headers={scheduleTableHeaders}
           rows={scheduleTable}
           loading={loading}
         />

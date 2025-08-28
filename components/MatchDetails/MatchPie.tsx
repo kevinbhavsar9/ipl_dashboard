@@ -1,5 +1,5 @@
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { PieChartData } from "./MatchScores";
+import { PieChartData } from "../../utils/types/MatchStatsTypes";
 
 export const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AA46BE"];
 const MatchPie = ({ data }: { data: PieChartData[] }) => {
@@ -16,7 +16,7 @@ const MatchPie = ({ data }: { data: PieChartData[] }) => {
             outerRadius={100}
             label={({ name, value }) => `${name}: ${value}`}
           >
-            {data.map((_, index) => (
+            {data?.map((_, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={COLORS[index % COLORS.length]}

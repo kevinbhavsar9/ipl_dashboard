@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import React from "react";
 import Navbar from "../../components/shared/Navbar";
-import Footer from "../../components/shared/Footer";
+// import Footer from "../../components/shared/Footer";
 import { ToastContainer } from "react-toastify";
 
 export function App({ Component, pageProps }: AppProps) {

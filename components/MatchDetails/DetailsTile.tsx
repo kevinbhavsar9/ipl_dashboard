@@ -1,4 +1,5 @@
-import { Extras } from "@/pages/stats/[matchId]";
+import { eval_winner } from "../../utils/lib/helper";
+import { Extras } from "../../utils/types/MatchStatsTypes";
 import CircularProgress from "@mui/material/CircularProgress";
 
 interface DeailsTileProps {
@@ -6,61 +7,35 @@ interface DeailsTileProps {
 }
 
 const DetailsTile = ({ data }: DeailsTileProps) => {
-  console.log(data);
-
-  const eval_winner = (team1: Extras, team2: Extras) => {
-    console.log(team1, team2);
-    if (Array.isArray(team1) && Array.isArray(team2)) {
-      return (
-        <div className="flex justify-center items-center h-[200px] w-full">
-          <CircularProgress />
-        </div>
-      );
-    } else {
-      const team1_score: string = team1.Total.split("/")[0];
-      const team2_score: string = team2.Total.split("/")[0];
-      // const team1_wickets = team1.Total.split("/")[1];
-      const team2_wickets: string = team2.Total.split("/")[1];
-
-      if (team1_score > team2_score) {
-        return `${team1.BattingTeamName} Won by ${
-          parseInt(team1_score) - parseInt(team2_score)
-        } Runs`;
-      } else if (team2_score > team1_score) {
-        return `${team2.BattingTeamName} Won by ${
-          10 - parseInt(team2_wickets)
-        } Wickets`;
-      } else {
-        return `The match was draw`;
-      }
-    }
-  };
 
   const team1 = data.length > 0 ? data[0][0] : [];
   const team2 = data.length > 0 ? data[1][0] : [];
 
   return (
     <div className="flex flex-col">
-      <div className="flex justify-between">
-        <div className="flex flex-col">
-          <span>{!Array.isArray(team1) ? team1?.BattingTeamName : ""}</span>
-          <span>{!Array.isArray(team1) ? team1?.Total : ""}</span>
-        </div>
-        <div className="flex flex-col">
-          <span>{!Array.isArray(team2) ? team2?.BattingTeamName : ""}</span>
-          <span>{!Array.isArray(team2) ? team2?.Total : ""}</span>
-        </div>
-      </div>
-      <div className="mx-auto">
-        {!Array.isArray(team1) && !Array.isArray(team2) ? (
-          eval_winner(team1, team2)
-        ) : (
+      {
+
+        data.length > 0 ? <>
+          {/* ScoreCard for each team */}
+          <div className="flex justify-between flex-wrap">
+            {[team1, team2].map((item, idx) => (<div key={idx} className="flex flex-col w-full md:w-fit py-2 px-4 my-2 bg-white rounded-xl" >
+              <span>{!Array.isArray(item) ? item?.BattingTeamName : ""}</span>
+              <strong>{!Array.isArray(item) ? item?.Total : ""}</strong>
+            </div>))
+            }
+          </div>
+
+          {/* Result for the match*/}
+          <div className="mx-auto">
+            <h2 className="text-xl font-semibold text-green-700 text-center">{eval_winner(team1 as Extras, team2 as Extras)}</h2>
+          </div>
+        </> :
           <div className="flex justify-center items-center h-[200px] w-full">
             <CircularProgress />
           </div>
-        )}
-      </div>
-    </div>
+      }
+
+    </div >
   );
 };
 

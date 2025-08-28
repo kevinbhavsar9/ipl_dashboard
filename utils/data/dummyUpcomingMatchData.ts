@@ -1,4 +1,4 @@
-import { Match } from "@/pages/api/schedule"; // adjust path
+import { Match } from "../types/MatchScheduleTypes"; // adjust path
 
 export const matchesDummyData: Match[] = [
   // Live Match

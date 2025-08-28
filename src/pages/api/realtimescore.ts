@@ -1,23 +1,18 @@
 // File: src/pages/api/live-score.ts
 import { NextApiRequest, NextApiResponse } from "next";
+import { MatchState } from "../../../utils/types/MatchCardTypes";
 
-type MatchState = {
-  innings: number; // 1 or 2
-  over: number;
-  ball: number;
-  score: number;
-  wickets: number;
-  team: string;
-};
 
-let matchState: MatchState = {
+const DEFAULT_MATCH_STATE={
   innings: 1,
   over: 0,
   ball: 0,
   score: 0,
   wickets: 0,
   team: "Gujarat Titans",
-};
+}
+
+let matchState: MatchState =DEFAULT_MATCH_STATE ;
 
 // Reset match
 function resetMatch() {
@@ -36,6 +31,7 @@ function simulateBall() {
   // Random outcome: 0,1,2,3,4,6 or wicket (-1)
   const outcomes = [0, 1, 2, 3, 4, 6, -1];
   const result = outcomes[Math.floor(Math.random() * outcomes.length)];
+  // const result = -1;
 
   if (result === -1) {
     matchState.wickets += 1;

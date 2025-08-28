@@ -1,11 +1,13 @@
-// pages/api/scorecard/[matchId].ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { chromium } from "playwright";
 import { redis } from "../../../../utils/lib/redis";
+import { BattingPlayer,BowlingPlayer, Extras } from "../../../../utils/types/MatchStatsTypes";
+import { SCRAPE_URL } from "../../../../utils/config";
 
 type Data = { source: string; data?: unknown; error?: string };
 
-const scrapeScoreCard = async (matchId: string) => {
+//Score Card data is loged in the IPL site, Below code is listens to console log and store all the logged data, from there score card data is fetched
+const scrapeScoreCard = async (matchID: string) => {
   const browser = await chromium.launch({ headless: false });
   const context = await browser.newContext({
     userAgent:
@@ -24,10 +26,8 @@ const scrapeScoreCard = async (matchId: string) => {
         const val = await arg.jsonValue();
         if (Array.isArray(val) && (val.length == 2 || val.length > 60)) {
           loggedData.push(val);
-          // console.log("Captured console array:", val);
         }
       } catch {
-        // Non-serializable content, ignore
         return "Error occured"
       }
     }
@@ -35,62 +35,60 @@ const scrapeScoreCard = async (matchId: string) => {
 
   try {
     const response = await page.goto(
-      `https://www.iplt20.com/match/2025/${matchId}`,
+      `${SCRAPE_URL}/match/2025/${matchID}`,
       {
         waitUntil: "networkidle",
         timeout: 60000, // 1 minute
       }
     );
     console.log("Response status:", response?.status());
-    // await page.click("a.ap-inner-tb-click", { hasText: "Innings" });
     await page.waitForTimeout(5000); // wait for console log to appear
 
     await browser.close();
 
     const scoreCardData = loggedData[2];
 
+
     if (scoreCardData) {
       const transformedScoreCardData =
         Array.isArray(scoreCardData) &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         scoreCardData?.map((item: any) => {
           const { BattingCard, BowlingCard, Extras } = item;
 
-          const transformed_batting = BattingCard.map((batting_map) => {
+          let transformed_batting=[]
+          let transformed_bowling=[]
+          let transformed_extra=[]
+
+
+           transformed_batting = BattingCard?BattingCard.map((batting_map:BattingPlayer) => {
             const { PlayerID, PlayerName, Runs, Sixes, Fours, Balls } =
               batting_map;
             return { PlayerID, PlayerName, Runs, Sixes, Fours, Balls };
-          });
+          }):[];
 
-          const transformed_bowling = BowlingCard.map((bowling_map) => {
+           transformed_bowling = BowlingCard?BowlingCard.map((bowling_map:BowlingPlayer) => {
             const { PlayerID, PlayerName, Runs, Wickets, Economy } =
               bowling_map;
             return { PlayerID, PlayerName, Runs, Wickets, Economy };
-          });
-
-          const transformed_extra = Extras.map((extra_map) => {
+          }):[];
+           transformed_extra = Extras ? Extras.map((extra_map:Extras) => {
             const { BattingTeamName, BowlingTeamName, Total } = extra_map;
             return { BattingTeamName, BowlingTeamName, Total };
-          });
+          }):[];
 
           return {
-            BattingCard: transformed_batting,
-            BowlingCard: transformed_bowling,
-            Extras: transformed_extra,
+            BattingCard: transformed_batting??[],
+            BowlingCard: transformed_bowling??[],
+            Extras: transformed_extra??[],
           };
         });
 
-      // return res.status(200).json({
-      //   success: true,
-      //   data: [[], [], transformedScoreCardData],
-      // });
+   
 
       return transformedScoreCardData;
-      // return res.status(200).json({ success: true, data: loggedData });
     } else {
       throw "No console data found";
-      // return res
-      //   .status(404)
-      //   .json({ success: false, error: "No console data found" });
     }
   } catch (error: unknown) {
     await browser.close();
@@ -100,34 +98,36 @@ const scrapeScoreCard = async (matchId: string) => {
         ? String((error as { message?: unknown }).message)
         : String(error);
     return errorMsg;
-    // res.status(500).json({ success: false, error: errorMsg });
   }
 };
+
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const { matchId } = req.query as { matchId?: string };
-  if (!matchId)
+  const { matchID } = req.query as { matchID?: string };
+  console.log(matchID,"here is match id")
+  if (!matchID)
     return res
       .status(400)
-      .json({ source: "fresh", error: "matchId is required" });
+      .json({ source: "fresh", error: "matchID is required" });
 
-  const cached = await redis.get(`${matchId}_scoreCard`);
+  const cached = await redis.get(`${matchID}_scoreCard`);
   if (cached) {
     return res.status(200).json({ source: "cache", data: cached });
   }
 
   // 2. Otherwise scrape fresh
-  const scrapedData = await scrapeScoreCard(matchId); // <-- your scraping logic
+  const scrapedData = await scrapeScoreCard(matchID); // <-- scraping function
 
   if (typeof scrapedData === "object") {
     // 3. Save in Redis with 1-day expiry (86400 seconds)
-    await redis.set(`${matchId}_scoreCard`, scrapedData);
+    await redis.set(`${matchID}_scoreCard`, scrapedData);
 
     return res.status(200).json({ source: "fresh", data: scrapedData });
   } else {
+                // @ts-expect-error will fix later
     return res.status(500).json({ source: "fresh", error: scrapedData });
   }
 }

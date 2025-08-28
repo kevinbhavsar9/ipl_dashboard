@@ -3,35 +3,14 @@ import { chromium } from "playwright";
 import * as cheerio from "cheerio";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { redis } from "../../../utils/lib/redis";
+import { Match } from "../../../utils/types/MatchScheduleTypes";
+import { SCRAPE_URL } from "../../../utils/config";
 
-export type Team = {
-  name: string;
-  code: string;
-  logo?: string ;
-  score?: string;
-  overs?: string;
-};
 
-export type MatchLinks = {
-  matchReport?: string;
-  highlights?: string ;
-  matchCentre?: string;
-};
-
-export type Match = {
-  matchID?: string ;
-  matchOrder?: string ;
-  venue: string;
-  dateTime: string;
-  result: string;
-  homeTeam: Team;
-  awayTeam: Team;
-  links: MatchLinks;
-  status:"live" | "upcoming" | "past";
-};
+//Schedule table is scrapped from the actual Schedule table in IPL site
 
 const scrapeScheduleTable = async () => {
-  const url = "https://www.iplt20.com/matches/results";
+  const url = `${SCRAPE_URL}/matches/results`;
 
   const browser = await chromium.launch({ headless: false });
   const context = await browser.newContext({
@@ -157,11 +136,11 @@ export default async function handler(
   }
 
   // 2. Otherwise scrape fresh
-  const scrapedData = await scrapeScheduleTable(); // <-- your scraping logic
+  const scrapedData = await scrapeScheduleTable(); // Scrape function
 
   if (typeof scrapedData === "object") {
     // 3. Save in Redis with 1-day expiry (86400 seconds)
-    await redis.set("scheduleData", scrapedData, { ex: 86400 });
+    await redis.set("scheduleData", scrapedData);
 
     return res.status(200).json({ source: "fresh", matches: scrapedData });
   } else {

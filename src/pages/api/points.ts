@@ -3,30 +3,13 @@ import { chromium } from "playwright";
 import * as cheerio from "cheerio";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { redis } from "../../../utils/lib/redis";
+import { PointsTableResponse, PointsTableRow } from "../../../utils/types/PointTableTypes";
+import { SCRAPE_URL } from "../../../utils/config";
 
-export interface PointsTableRow {
-  rank: string;
-  team: string;
-  played: string;
-  won: string;
-  lost: string;
-  noResult: string;
-  nrr: string;
-  runsFor: string;
-  runsAgainst: string;
-  points: string;
-  recentForm: string;
-  [key: string]: string | number;
-}
 
-interface PointsTableResponse {
-  source: string;
-  table?: PointsTableRow[];
-  error?: string;
-}
-
+//Point table is scrapped from the actual point table in IPL site
 const scrapePointsTable = async () => {
-  const url = "https://www.iplt20.com/points-table/men/2025";
+  const url = `${SCRAPE_URL}/points-table/men/2025`;
 
   const browser = await chromium.launch({ headless: false });
   const context = await browser.newContext({
@@ -101,7 +84,7 @@ export default async function handler(
 
   if (typeof scrapedData === "object") {
     // 3. Save in Redis with 1-day expiry (86400 seconds)
-    await redis.set("pointsData", scrapedData, { ex: 86400 });
+    await redis.set("pointsData", scrapedData);
 
     return res.status(200).json({ source: "fresh", table: scrapedData });
   } else {

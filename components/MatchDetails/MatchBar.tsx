@@ -8,17 +8,18 @@ import {
   BarChart,
   Cell,
 } from "recharts";
-import { BarChartData } from "./MatchScores";
-import { formatNumber } from "../../utils/utilFunctions";
+import { BarChartData } from "../../utils/types/MatchStatsTypes";
+import { formatNumber } from "../../utils/lib/helper";
 import { COLORS } from "./MatchPie";
 
 interface TooltipProps {
   active?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any[];
   tooltipContent: string;
 }
 
-const MatchGraph = ({
+const MatchBar = ({
   data,
   tooltipContent,
 }: {
@@ -77,7 +78,7 @@ const MatchGraph = ({
             radius={[0, 0, 0, 0]}
             barSize={40}
           >
-            {data.map((_, index) => (
+            {data?.map((_, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={COLORS[index % COLORS.length]}
@@ -90,4 +91,4 @@ const MatchGraph = ({
   );
 };
 
-export default MatchGraph;
+export default MatchBar;

@@ -1,21 +1,12 @@
 import { useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
-import { ScoreData } from "@/pages/stats/[matchId]";
-import MatchGraph from "./MatchGraph";
+import { BarChartData, PieChartData, ScoreData } from "../../utils/types/MatchStatsTypes";
+import MatchBar from "./MatchBar";
 import MatchPie from "./MatchPie";
+import { batting_player_headers, bowling_player_headers } from "../../utils/constants/tableHeaders";
 
 interface MatchScoresProps {
   data: ScoreData[];
-}
-
-export interface BarChartData {
-  label: string;
-  value: number;
-}
-
-export interface PieChartData {
-  name: string;
-  value: number;
 }
 
 const DEFAULT_VALUE = {
@@ -25,31 +16,16 @@ const DEFAULT_VALUE = {
 };
 
 const MatchScores = ({ data }: MatchScoresProps) => {
+  //state for teams names render
   const [teams, setTeams] = useState<string[]>([]);
+  //state for active team tab
   const [activeTeam, setActiveTeams] = useState<string>("");
+  //state for active team tab data
   const [activeTeamScoreCard, setActiveTeamScoreCard] =
     useState<ScoreData>(DEFAULT_VALUE);
+  //transformed data state for graph
   const [batsmenData, setBatsmenData] = useState<BarChartData[]>([]);
   const [bowlersData, setBowlersData] = useState<PieChartData[]>([]);
-
-  console.log(activeTeamScoreCard, "Car", batsmenData);
-
-  const headers = [
-    { key: "PlayerName", value: "Batsman" },
-    { key: "Runs", value: "R" },
-    { key: "Sixes", value: "6s" },
-    { key: "Fours", value: "4s" },
-    { key: "Balls", value: "B" },
-  ];
-
-  const headers2 = [
-    { key: "PlayerName", value: "Bolwer" },
-    { key: "Runs", value: "R" },
-    { key: "Wickets", value: "W" },
-    { key: "Economy", value: "Eco" },
-  ];
-
-  console.log("this is the data", data);
 
   useEffect(() => {
     const team1 = data.length > 0 ? data[0].Extras[0].BattingTeamName : [];
@@ -58,6 +34,7 @@ const MatchScores = ({ data }: MatchScoresProps) => {
     setActiveTeams(team1 as string);
   }, [data]);
 
+  //Side effect for Graph data transformation
   useEffect(() => {
     const activeTeamScoreCardValue = data.filter(
       (item) => item.Extras[0].BattingTeamName === activeTeam
@@ -80,7 +57,7 @@ const MatchScores = ({ data }: MatchScoresProps) => {
     setActiveTeamScoreCard(activeTeamScoreCardValue);
     setBatsmenData(transformedBatsmanData);
     setBowlersData(transformedBowlerData);
-  }, [activeTeam]);
+  }, [activeTeam, data]);
 
   const handleChangeSelectedTeam = (team: string) => {
     setActiveTeams(team);
@@ -89,39 +66,44 @@ const MatchScores = ({ data }: MatchScoresProps) => {
   return (
     // Selection Tab
     <div className="flex flex-col gap-6 mb-8">
-      <div className="flex justify-start gap-3">
-        {teams.map((item, index) => (
-          <div
-            className={`border-blue-400 border ${
-              item === activeTeam && "bg-blue-400"
-            } rounded-full px-3 py-1 cursor-pointer`}
-            key={index}
-            onClick={() => handleChangeSelectedTeam(item)}
-          >
-            {item}
-          </div>
-        ))}
-      </div>
+      {
+        data.length > 0
+        && <div className="flex justify-start gap-3">
+          {teams.map((item, index) => (
+            <div
+              className={`border-blue-400 border ${item === activeTeam && "bg-primary text-white"
+                } rounded-full px-3 py-1 cursor-pointer text-center`}
+              key={index}
+              onClick={() => handleChangeSelectedTeam(item)}
+            >
+              {item}
+            </div>
+          ))}
+        </div>}
+
 
       <div className="flex flex-col lg:flex-row gap-6">
+        {/* Table for Batting Stats */}
         <TableComponent
-          headers={headers}
+          headers={batting_player_headers}
           rows={activeTeamScoreCard?.BattingCard || []}
         />
+        {/* Table for Bowling Stats */}
+
         <TableComponent
-          headers={headers2}
+          headers={bowling_player_headers}
           rows={activeTeamScoreCard?.BowlingCard || []}
         />
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-1/2 flex flex-col gap-3 bg-white">
-          <div className="border-b border-gray-400 p-3">Top 5 Batsmen</div>
-          <MatchGraph data={batsmenData} tooltipContent="Runs Scored" />
+          <h2 className="border-b border-gray-400 p-3">Top 5 Batsmen</h2>
+          <MatchBar data={batsmenData} tooltipContent="Runs Scored" />
         </div>
         <div className="w-full lg:w-1/2 flex flex-col gap-3 bg-white">
-          <div className="border-b border-gray-400 p-3">Top 5 Bowlers</div>
-          <MatchPie data={bowlersData} />
+          <h2 className="border-b border-gray-400 p-3">Top 5 Bowlers</h2>
+          <MatchPie data={bowlersData && bowlersData.map((item) => ({ ...item, name: item.name.split(" ")[0] }))} />
         </div>
       </div>
     </div>

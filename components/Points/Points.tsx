@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
 import TableComponent from "../shared/TableComponent";
-import { PointsTableRow } from "@/pages/api/points";
+import { PointsTableRow } from "../../utils/types/PointTableTypes";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { pointTablHeaders } from "../../utils/constants/tableHeaders";
 
-type PointComponentProps = object;
 
-// Pos, Team, Played, win, loss, NRR, Points
-
-export const PointsComponent: React.FC<PointComponentProps> = () => {
+export const PointsComponent = () => {
   const [pointTable, setPointTable] = useState<PointsTableRow[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +18,6 @@ export const PointsComponent: React.FC<PointComponentProps> = () => {
         if (response.status !== 200) {
           toast.error("Error fetching API");
         }
-        console.log("points table", response.data);
         setPointTable(
           response.data.table.map((item: PointsTableRow) => {
             return {
@@ -35,7 +32,8 @@ export const PointsComponent: React.FC<PointComponentProps> = () => {
           })
         );
       } catch (error) {
-        console.error("Error fetching points table:", error);
+        console.log("Error fetching points table:", error);
+        toast.error("Error fetching points table")
       } finally {
         setLoading(false);
       }
@@ -44,22 +42,14 @@ export const PointsComponent: React.FC<PointComponentProps> = () => {
     fetchPointsTable();
   }, []);
 
-  const table_headers = [
-    { key: "pos", value: "POS" },
-    { key: "team_name", value: "Name" },
-    { key: "total_played", value: "P" },
-    { key: "win", value: "W" },
-    { key: "loss", value: "L" },
-    { key: "nrr", value: "NRR" },
-    { key: "pts", value: "PTS" },
-  ];
+
 
   return (
     <div className="border border-gray-300 rounded bg-white mr-1 w-full">
       <h1 className="mx-4 my-2 font-bold">Point Table</h1>
       <div className="mx-2 max-w-[90vw]">
         <TableComponent
-          headers={table_headers}
+          headers={pointTablHeaders}
           rows={pointTable}
           loading={loading}
         />
