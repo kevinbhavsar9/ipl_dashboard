@@ -14,6 +14,8 @@ const StatsPage = () => {
   const router = useRouter();
   const { matchID } = router.query;
 
+  console.log("matchID",matchID)
+
   const fetchScoreCardData = useCallback(async (id: string) => {
     try {
 
