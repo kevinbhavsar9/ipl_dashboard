@@ -1,4 +1,4 @@
-import {  useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DetailsTile from "../../../components/MatchDetails/DetailsTile";
 import MatchScores from "../../../components/MatchDetails/MatchScores";
 import { useRouter } from "next/router";
@@ -12,37 +12,26 @@ const StatsPage = () => {
 
   const [scoreData, setScoreData] = useState<ScoreData[]>([]);
   const router = useRouter();
-  
-  const { matchId } = router.query;
+  const { matchID } = router.query;
 
-  useEffect(() => {
-    console.log("router", router.query)
-    console.log("matchID", matchId)
+  const fetchScoreCardData = useCallback(async () => {
+    try {
+      if (matchID) {
 
-  }, [router.query, router, matchId])
-
-
-
-  useEffect(() => {
-    if (!router.isReady || !matchId) return;
-
-    const fetchScoreCardData = async (id: string) => {
-      try {
-
-        const response = await axios.get(`/api/scorecard/${id}`);
+        const response = await axios.get(`/api/scorecard/${matchID}`);
         const match_data = response.data.data
         setScoreData(match_data)
-
-
-      } catch (error) {
-        console.log(error)
-        toast.error("Please try again!")
       }
-    };
 
-    const id = Array.isArray(matchId) ? matchId[0] : matchId;
-    fetchScoreCardData(id);
-  }, [router.query, router.isReady, matchId]);
+    } catch (error) {
+      console.log(error)
+      toast.error("Please try again!")
+    }
+  }, [matchID]);
+
+  useEffect(() => {
+    fetchScoreCardData()
+  }, [matchID, fetchScoreCardData])
 
 
   return (
